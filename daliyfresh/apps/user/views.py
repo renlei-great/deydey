@@ -7,6 +7,7 @@ from itsdangerous import SignatureExpired
 from django.core.urlresolvers import reverse
 from django.core.mail import send_mail
 from daliyfresh import settings
+from celery_tasks.tasks import send_register_active_email
 import re
 
 # Create your views here.
@@ -50,12 +51,12 @@ class RegisterView(View):
             return render(request, 'register.html', {'errmsg': '请同意条款'})
 
         # 进行业务处理：保存数据
-        user = User.objects.create_user(username, email, pwd)
-        user.is_active = 0
+        user = User.objects.create_user(username, email, pwd)  # 使用django自带方法进行保存用户信息
+        user.is_active = 0  # 修改为未激活
         user.save()
 
         # 对id进行加密
-        serializer = Serializer(settings.SECRET_KEY, 3600)
+        serializer = Serializer(settings.SECRET_KEY, 3600)  # 创建一个加密功能类的对象
         info = {'user_id':user.id}
         res = serializer.dumps(info)
         # 对res转换字符串
@@ -63,17 +64,8 @@ class RegisterView(View):
         # 发送邮件链接，包含激活练级：192.168.223.128:7788/user/active/1
         # 组织邮件发送内容
         # 主题
-        subject = '注册激活'
-        # html内容
-        message = ''
-        html_mag = '<h1>%s 欢迎您成为天天生鲜会员</h1><br>请点击下方链接激活会员<br><a href = "http://192.168.223.128:7788/user/active/%s">http://192.168.223.128:7788/user/active/%s </a>' %(username,res,res)
-        # 收件人列表
-        receiver = [email]
-        # 发件人
-        sender = settings.EMAIL_FROM
-
-        # 发送
-        send_mail(subject, message, sender, receiver , html_message=html_mag)
+        # 用celery发送邮件
+        send_register_active_email(username, res , email)
         # 重定向
         return redirect(reverse('goods:index'))
 
