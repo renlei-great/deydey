@@ -64,8 +64,8 @@ class RegisterView(View):
         # 发送邮件链接，包含激活练级：192.168.223.128:7788/user/active/1
         # 组织邮件发送内容
         # 主题
-        # 用celery发送邮件
-        send_register_active_email(username, res , email)
+        # 用celery发送邮件这个函数被装饰后有一个delay方法，用这个方法加入到broker队列中
+        send_register_active_email.delay(username, res , email)
         # 重定向
         return redirect(reverse('goods:index'))
 
