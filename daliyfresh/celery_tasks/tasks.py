@@ -24,7 +24,7 @@ def send_register_active_email(username, res, email ):
     subject = '注册激活'
     # html内容
     message = ''
-    html_mag = '<h1>%s 欢迎您成为天天生鲜会员</h1><br>请点击下方链接激活会员<br><a href = "http://192.168.223.128:7788/user/active/%s">http://192.168.223.128:7788/user/active/%s </a>' % (
+    html_mag = '<h1>%s 欢迎您成为天天生鲜会员</h1><br>请点击下方链接激活会员<br><a href = "http://192.168.223.128:7788/user/active/%s">http://192.168.223.128:7788/user/active/%s </a><br >' % (
     username, res, res)
     # 收件人列表
     receiver = [email]

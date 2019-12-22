@@ -9,6 +9,8 @@ from django.core.mail import send_mail
 from daliyfresh import settings
 from celery_tasks.tasks import send_register_active_email
 import re
+from django.contrib.auth import authenticate, login
+
 
 # Create your views here.
 
@@ -93,5 +95,59 @@ class ActiveView(View):
 class LoginView(View):
     """登录界面"""
     def get(self,request):
-        return render(request, 'login.html')
+        # 判断是否记住了用户名
+        print(type(request.COOKIES))
+        if 'username' in request.COOKIES:
+            # 记住密码
+            username = request.COOKIES.get('username')
+            checked = 'checked'
+        else:
+            # 不记住密码
+            username = ''
+            # 将复选框设为不记住
+            checked = ''
+        return render(request, 'login.html', {'username':username, 'checked':checked})
+
+    def post(self, request):
+        """验证登录"""
+        # 接受用户的信息
+        username = request.POST.get('username')
+        pwd = request.POST.get('pwd')
+        checked = request.POST.get('checked')
+
+        # 验证信息完整性
+        if not all([username, pwd]):
+            return render(request, 'login.html', {'errmsg': '请填写完整'})
+
+        user = authenticate(username=username, password=pwd)
+        if user is not None:
+            # 密码用户名正确
+            if user.is_active:
+                # 用户已激活
+                # 保存用户登录状态
+                login(request, user)
+                # 保存response子类
+                response = redirect(reverse('goods:index'))
+                if checked == 'on':
+                    # 设置一个cooke
+                    response.set_cookie('username', username, max_age= 7*24*3600)
+                    # 返回
+                    return response
+                else:
+                    # 删除session
+                    response.delete_cookie('username')
+                    # 跳转到首页
+                    return response
+            else:
+                # 用户未激活
+                return render(request, 'login.html', {'errmsg': '用户未激活'})
+        else:
+            # 用户密码错误
+            return render(request, 'login.html', {'errmsg': '用户名或密码不正确'})
+
+
+        # 进行业务处理：去数据库进行查询比对
+
+        # 返回给用户
+
 
