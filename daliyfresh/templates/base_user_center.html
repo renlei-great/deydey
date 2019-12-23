@@ -1,0 +1,18 @@
+{# 用户中心三个模板页 #}
+{% extends 'base_cart_order_user.html' %}
+{% block title %}天天生鲜-用户中心{% endblock title %}
+{% block bage_title %}用户中心{% endblock bage_title %}
+{% block body %}
+    <div class="main_con clearfix">
+		<div class="left_menu_con clearfix">
+			<h3>用户中心</h3>
+			<ul>
+				<li><a href="{% url 'user:user' %}" {% if prm == 'user' %}class="active" {% endif %}>· 个人信息</a></li>
+				<li><a href="{% url 'user:order' %}" {% if prm == 'order' %}class="active" {% endif %}>· 全部订单</a></li>
+				<li><a href="{% url 'user:address' %}" {% if prm == 'address' %}class="active" {% endif %}>· 收货地址</a></li>
+			</ul>
+		</div>
+        {# 主体右侧内容快 #}
+        {% block rigth_content %}{% endblock rigth_content %}
+    </div>
+{% endblock body %}

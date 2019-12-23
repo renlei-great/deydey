@@ -127,7 +127,10 @@ class LoginView(View):
                 # 保存用户登录状态
                 login(request, user)
                 # 保存response子类
-                response = redirect(reverse('goods:index'))
+
+                # 获取request中next的地址
+                get_heml = request.GET.get('next')
+                response = redirect(get_heml)
                 if checked == 'on':
                     # 设置一个cooke
                     response.set_cookie('username', username, max_age= 7*24*3600)
@@ -149,5 +152,32 @@ class LoginView(View):
         # 进行业务处理：去数据库进行查询比对
 
         # 返回给用户
+
+
+# /user/user
+class UserInfoView(View):
+    """用户中心-信息页"""
+    def get(self,request):
+        """显示"""
+        # prm:user
+        return render(request, 'user_center_info.html', {'prm': 'user'})
+
+
+# /user/order
+class UserOrderView(View):
+    """用户中心-订单页"""
+    def get(self, request):
+        """显示"""
+        # prm:order
+        return render(request, 'user_center_order.html', {'prm':'order'})
+
+
+# /user/address
+class AddressView(View):
+    """用户中心-地址页"""
+    def get(self, request):
+        """显示"""
+        # prm:address
+        return render(request, 'user_center_site.html', {'prm':'address'})
 
 
