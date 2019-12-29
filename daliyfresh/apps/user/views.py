@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.views.generic import View
-from user.models import User
+from user.models import User, Address
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired
 from django.core.urlresolvers import reverse
@@ -169,8 +169,12 @@ class UserInfoView(LofinRequiredMixni,View):
     """用户中心-信息页"""
     def get(self,request):
         """显示"""
+        # 获取用户
+        user = request.user
+        address = Address.objects.get_default_address(user)
+
         # prm:user
-        return render(request, 'user_center_info.html', {'prm': 'user'})
+        return render(request, 'user_center_info.html', {'prm': 'user', 'user':user, 'address': address})
 
 
 # /user/order
@@ -187,7 +191,39 @@ class AddressView(LofinRequiredMixni,View):
     """用户中心-地址页"""
     def get(self, request):
         """显示"""
+        # 获取默认收获地址
+        user = request.user
+        address = Address.objects.get_default_address(user)
         # prm:address
-        return render(request, 'user_center_site.html', {'prm':'address'})
+        return render(request, 'user_center_site.html', {'prm':'address', "address": address})
 
+    def post(self, request):
+        """保存地址post请求"""
+        # 接受数据
+        receiver = request.POST.get('receiver')
+        addr = request.POST.get('addr')
+        zip_code = request.POST.get('zip_code')
+        phone = request.POST.get('phone')
+        # 校验数据
+        if not all([receiver, addr, phone]):
+            return render(request, "user_center_site.html", {"errmsg":"数据不完整"})
 
+        try:
+            if not re.match(r'^1[3|4|5|7|8][0-9]{9}$', phone):
+                return render(request, "user_center_site.html", {"errmsg":"电话号填写不正确"})
+        except Exception:
+                return render(request, "user_center_site.html", {"errmsg": "请输入正确的电话号"})
+
+        # 处理业务：保存收获地址
+        user = request.user
+        address = Address.objects.get_default_address(user)
+
+        if address:
+            is_default = False
+        else:
+            is_default = True
+
+        # 添加地址
+        Address.objects.create(user = user,receiver = receiver,addr = addr,zip_code = zip_code,phone = phone,is_default = is_default)
+        # 返回数据
+        return redirect(reverse("user:address"))
