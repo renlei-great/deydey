@@ -9,7 +9,8 @@ from django.core.mail import send_mail
 from daliyfresh import settings
 from celery_tasks.tasks import send_register_active_email
 import re
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
+from utils.mixni import LofinRequiredMixni
 
 
 # Create your views here.
@@ -96,7 +97,6 @@ class LoginView(View):
     """登录界面"""
     def get(self,request):
         # 判断是否记住了用户名
-        print(type(request.COOKIES))
         if 'username' in request.COOKIES:
             # 记住密码
             username = request.COOKIES.get('username')
@@ -119,6 +119,7 @@ class LoginView(View):
         if not all([username, pwd]):
             return render(request, 'login.html', {'errmsg': '请填写完整'})
 
+        # django自带验证用户名和密码的函数authenticate
         user = authenticate(username=username, password=pwd)
         if user is not None:
             # 密码用户名正确
@@ -128,8 +129,8 @@ class LoginView(View):
                 login(request, user)
                 # 保存response子类
 
-                # 获取request中next的地址
-                get_heml = request.GET.get('next')
+                # 获取request中next的地址,默认跳转到index页面
+                get_heml = request.GET.get('next', reverse("goods:index"))
                 response = redirect(get_heml)
                 if checked == 'on':
                     # 设置一个cooke
@@ -154,8 +155,17 @@ class LoginView(View):
         # 返回给用户
 
 
+class LogoutView(View):
+    def get(self, request):
+        # 退出用户登录清除sessions信息
+        logout(request)
+
+        # 清除完sessions信息后跳转回首页
+        return redirect(reverse('goods:index'))
+
+
 # /user/user
-class UserInfoView(View):
+class UserInfoView(LofinRequiredMixni,View):
     """用户中心-信息页"""
     def get(self,request):
         """显示"""
@@ -164,7 +174,7 @@ class UserInfoView(View):
 
 
 # /user/order
-class UserOrderView(View):
+class UserOrderView(LofinRequiredMixni,View):
     """用户中心-订单页"""
     def get(self, request):
         """显示"""
@@ -173,7 +183,7 @@ class UserOrderView(View):
 
 
 # /user/address
-class AddressView(View):
+class AddressView(LofinRequiredMixni,View):
     """用户中心-地址页"""
     def get(self, request):
         """显示"""
