@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.views.generic import View
 from user.models import User, Address
+from goods.models import GoodsSKU
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired
 from django.core.urlresolvers import reverse
@@ -11,6 +12,7 @@ from celery_tasks.tasks import send_register_active_email
 import re
 from django.contrib.auth import authenticate, login, logout
 from utils.mixni import LofinRequiredMixni
+from django_redis import get_redis_connection
 
 
 # Create your views here.
@@ -172,9 +174,27 @@ class UserInfoView(LofinRequiredMixni,View):
         # 获取用户
         user = request.user
         address = Address.objects.get_default_address(user)
-
+        # 获取用户最近浏览的五条信息
+        # 链接到redis缓存数据库,获取用户最近浏览的五条信息，也就是说从redis数据库中取
+        # 具体理解就是历史记录因为用户经常用到，所以用redis做缓存，存入每个商品的id到redis数据库中，取的时候，县从redis数据库中取出前五个商品id，然后再用这五个id到mysql数据库中取出
+        # 详细的商品信息
+        con = get_redis_connection("default")
+        # 拼接列表名
+        history_key = "history_%s" % user.id
+        # 查询最近浏览的五个id
+        sku_ids = con.lrange(history_key,0,4)
+        # 从数据库中查出商品具体详细信息
+        goos_li = []
+        for sku in sku_ids:
+            id_sku = GoodsSKU.objects.get(id = sku)
+            goos_li.append(id_sku)
+        # 组织上下文
+        content = {'prm': 'user',
+                   'user':user,
+                   'address': address,
+                   'goos_li':goos_li,}
         # prm:user
-        return render(request, 'user_center_info.html', {'prm': 'user', 'user':user, 'address': address})
+        return render(request, 'user_center_info.html', content)
 
 
 # /user/order
