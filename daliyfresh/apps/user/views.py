@@ -178,12 +178,15 @@ class UserInfoView(LofinRequiredMixni,View):
         # 链接到redis缓存数据库,获取用户最近浏览的五条信息，也就是说从redis数据库中取
         # 具体理解就是历史记录因为用户经常用到，所以用redis做缓存，存入每个商品的id到redis数据库中，取的时候，县从redis数据库中取出前五个商品id，然后再用这五个id到mysql数据库中取出
         # 详细的商品信息
-        con = get_redis_connection("default")
+        con = get_redis_connection("default")  # redis的一个实例对象，链接redis数据库
+
         # 拼接列表名
         history_key = "history_%s" % user.id
+
         # 查询最近浏览的五个id
         sku_ids = con.lrange(history_key,0,4)
-        # 从数据库中查出商品具体详细信息
+
+        # 遍历从数据库中查出商品具体详细信息
         goos_li = []
         for sku in sku_ids:
             id_sku = GoodsSKU.objects.get(id = sku)

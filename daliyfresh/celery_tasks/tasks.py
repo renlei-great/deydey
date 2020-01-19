@@ -14,6 +14,7 @@ django.setup()
 
 
 # 创建一个celery实例对象
+
 app = Celery('celery_tasks.tasks', broker='redis://192.168.223.128:6379/8')  # 第一个参数为这个类命名，第二个参数是中间任务队列（broker）
 
 
