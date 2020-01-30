@@ -9,16 +9,13 @@
 				<h1>全部商品分类</h1>	
 				<span></span>			
 				<ul class="subnav">
-					<li><a href="#" class="fruit">新鲜水果</a></li>
-					<li><a href="#" class="seafood">海鲜水产</a></li>
-					<li><a href="#" class="meet">猪牛羊肉</a></li>
-					<li><a href="#" class="egg">禽类蛋品</a></li>
-					<li><a href="#" class="vegetables">新鲜蔬菜</a></li>
-					<li><a href="#" class="ice">速冻食品</a></li>
+                    {% for type in types %}
+					<li><a href="#" class="{{ type.logo }}">{{ type.name }}</a></li>
+                    {% endfor %}
 				</ul>
 			</div>
 			<ul class="navlist fl">
-				<li><a href="">首页</a></li>
+				<li><a href="{% url 'goods:index' %}">首页</a></li>
 				<li class="interval">|</li>
 				<li><a href="">手机生鲜</a></li>
 				<li class="interval">|</li>
@@ -30,20 +27,20 @@
 	<div class="breadcrumb">
 		<a href="#">全部分类</a>
 		<span>></span>
-		<a href="#">新鲜水果</a>
+		<a href="#">{{ goods_sku.goods.name }}</a>
 		<span>></span>
 		<a href="#">商品详情</a>
 	</div>
 
 	<div class="goods_detail_con clearfix">
-		<div class="goods_detail_pic fl"><img src="images/goods_detail.jpg"></div>
+		<div class="goods_detail_pic fl"><img src="{{ goods_sku.image.url }}"></div>
 
 		<div class="goods_detail_list fr">
-			<h3>大兴大棚草莓</h3>
-			<p>草莓浆果柔软多汁，味美爽口，适合速冻保鲜贮藏。草莓速冻后，可以保持原有的色、香、味，既便于贮藏，又便于外销。</p>
+			<h3>{{ goods_sku.name }}</h3>
+			<p>{{ goods_sku.desc }}</p>
 			<div class="prize_bar">
-				<span class="show_pirze">¥<em>16.80</em></span>
-				<span class="show_unit">单  位：500g</span>
+				<span class="show_pirze">¥<em>{{ goods_sku.price }}</em></span>
+				<span class="show_unit">单  位：{{ goods_sku.unite }}</span>
 			</div>
 			<div class="goods_num clearfix">
 				<div class="num_name fl">数 量：</div>
@@ -51,8 +48,16 @@
 					<input type="text" class="num_show fl" value="1">
 					<a href="javascript:;" class="add fr">+</a>
 					<a href="javascript:;" class="minus fr">-</a>	
-				</div> 
-			</div>
+				</div>
+            </div>
+            <div>
+                <ul>
+                    {% for spu in goods_spu %}
+                        <a href="{% url 'goods:detail' spu.id %}">{{ spu.name }}</a> &nbsp;&nbsp;
+                    {% endfor %}
+                </ul>
+            </div>
+
 			<div class="total">总价：<em>16.80元</em></div>
 			<div class="operate_btn">
 				<a href="javascript:;" class="buy_btn">立即购买</a>
@@ -66,16 +71,13 @@
 			<div class="new_goods">
 				<h3>新品推荐</h3>
 				<ul>
+                    {% for goods in new_goods %}
 					<li>
-						<a href="#"><img src="images/goods/goods001.jpg"></a>
-						<h4><a href="#">进口柠檬</a></h4>
-						<div class="prize">￥3.90</div>
+						<a href="#"><img src="{{ goods.image.url }}"></a>
+						<h4><a href="#">{{ goods.name }}</a></h4>
+						<div class="prize">￥{{ goods.price }}</div>
 					</li>
-					<li>
-						<a href="#"><img src="images/goods/goods002.jpg"></a>
-						<h4><a href="#">玫瑰香葡萄</a></h4>
-						<div class="prize">￥16.80</div>
-					</li>
+                    {% endfor %}
 				</ul>
 			</div>
 		</div>
@@ -89,7 +91,15 @@
 			<div class="tab_content">
 				<dl>
 					<dt>商品详情：</dt>
-					<dd>草莓采摘园位于北京大兴区 庞各庄镇四各庄村 ，每年1月-6月面向北京以及周围城市提供新鲜草莓采摘和精品礼盒装草莓，草莓品种多样丰富，个大香甜。所有草莓均严格按照有机标准培育，不使用任何化肥和农药。草莓在采摘期间免洗可以直接食用。欢迎喜欢草莓的市民前来采摘，也欢迎各大单位选购精品有机草莓礼盒，有机草莓礼盒是亲朋馈赠、福利送礼的最佳选择。 </dd>
+					<dd>{{ goods_sku.goods.detail | safe }}</dd>
+				</dl>
+			</div>
+            <div class="tab_content">
+				<dl>
+                    {% for comment in comments %}
+					<dt>评论时间：{{ comment.update_time }}&nbsp;&nbsp;用户名称：{{ comment.order.user }}</dt>
+					<dd>评论内容：{{ comment.comment }}</dd>
+                    {% endfor %}
 				</dl>
 			</div>
 

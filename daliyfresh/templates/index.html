@@ -47,14 +47,14 @@
     {% for type in types %}
 	<div class="list_model">
 		<div class="list_title clearfix">
-			<h3 class="fl" id="model01">{{ type.name }}</h3>
+			<h3 class="fl" id="model0{{ forloop.counter }}">{{ type.name }}</h3>
 			<div class="subtitle fl">
 				<span>|</span>
                 {% for text in type.text_type_banner %}
-				<a href="#">{{ text.sku.name }}</a>
+				<a href="{% url 'goods:detail' text.sku.id %}">{{ text.sku.name }}</a>
                 {% endfor %}
 			</div>
-			<a href="#" class="goods_more fr" id="fruit_more">查看更多 ></a>
+			<a href="{% url 'goods:list' type.id 1 %}" class="goods_more fr" id="fruit_more">查看更多 ></a>
 		</div>
 
 		<div class="goods_con clearfix">
@@ -62,8 +62,8 @@
 			<ul class="goods_list fl">
                 {% for image in type.img_type_banner %}
 				<li>
-					<h4><a href="#">{{ image.sku.name }}</a></h4>
-					<a href="#"><img src="{{ image.sku.image.url }}"></a>
+					<h4><a href="{% url 'goods:detail' image.sku.id %}">{{ image.sku.name }}</a></h4>
+					<a href="{% url 'goods:detail' image.sku.id %}"><img src="{{ image.sku.image.url }}"></a>
 					<div class="prize">¥ {{ image.sku.price }}</div>
 				</li>
                 {% endfor %}
