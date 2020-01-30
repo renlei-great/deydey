@@ -170,15 +170,22 @@ class ListView(View):
         skus_page = pag.page(page)
 
         # 控制页码始终五页
+        # 总页数如果小于或等于五页，全部显示
+        # 如果是前三页显示12345
+        # 如果是后三页，显示后五页 8 9 10
+        # 其他情况显示当前页前两页和后两页
         if skus_page.paginator.num_pages <= 5:
         # 总页数如果小于或等于五页，全部显示
             page_range = range(1,skus_page.paginator.num_pages+1)
         # 如果是前三页显示12345
         elif page <= 3 :
             page_range = range(1,6)
-        # 如果是大于三页显示23456
-        elif page > 3 :
-            page_range = range(2,7)
+        # 如果是后三页，显示后五页 8 9 10
+        elif pag.num_pages - page <= 2 :
+            page_range = range(skus_page.paginator.num_pages-4,skus_page.paginator.num_pages+1)
+        # 其他情况显示当前页前两页和后两页
+        else:
+            page_range = range(skus_page.paginator.num_pages - 2, skus_page.paginator.num_pages +3)
 
         # 组织上下文
         conutext = {

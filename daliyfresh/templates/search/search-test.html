@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    全文检索处理完后会给前端传送三个对象，query,page,paginator,
+    page对象是查询到的当前页的对象集，可以使用for遍历出了的SearchResult类的实例对象.object使用每一个商品的对象
+    <p>要查寻的关键字：{{ query }}</p>
+    {% for p in page %}
+        <p>page对象：{{ p.object }}</p>
+    {% endfor %}
+    <p>paginator对象：{{ paginator }}</p>
+</body>
+</html>
