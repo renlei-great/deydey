@@ -1,5 +1,5 @@
 {% extends 'base_detail_list.html' %}
-
+{% load staticfiles %}
 {% block title %}天天生鲜-商品详情{% endblock title %}
 
 {% block body %}
@@ -40,12 +40,14 @@
 			<p>{{ goods_sku.desc }}</p>
 			<div class="prize_bar">
 				<span class="show_pirze">¥<em>{{ goods_sku.price }}</em></span>
+
 				<span class="show_unit">单  位：{{ goods_sku.unite }}</span>
 			</div>
 			<div class="goods_num clearfix">
 				<div class="num_name fl">数 量：</div>
 				<div class="num_add fl">
 					<input type="text" class="num_show fl" value="1">
+
 					<a href="javascript:;" class="add fr">+</a>
 					<a href="javascript:;" class="minus fr">-</a>	
 				</div>
@@ -61,7 +63,8 @@
 			<div class="total">总价：<em>16.80元</em></div>
 			<div class="operate_btn">
 				<a href="javascript:;" class="buy_btn">立即购买</a>
-				<a href="javascript:;" class="add_cart" id="add_cart">加入购物车</a>				
+                {% csrf_token %}
+				<a href="javascript:;" sku="{{ goods_sku.id }}" class="add_cart" id="add_cart">加入购物车</a>
 			</div>
 		</div>
 	</div>
@@ -73,8 +76,8 @@
 				<ul>
                     {% for goods in new_goods %}
 					<li>
-						<a href="#"><img src="{{ goods.image.url }}"></a>
-						<h4><a href="#">{{ goods.name }}</a></h4>
+						<a href="{% url 'goods:detail' goods.id %}"><img src="{{ goods.image.url }}"></a>
+						<h4><a href="{% url 'goods:detail' goods.id %}">{{ goods.name }}</a></h4>
 						<div class="prize">￥{{ goods.price }}</div>
 					</li>
                     {% endfor %}
@@ -111,25 +114,90 @@
 {% endblock bottom %}
 
 {% block bottomfiles %}
-	<script type="text/javascript" src="js/jquery-1.12.2.js"></script>
+	<script type="text/javascript" src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
 	<script type="text/javascript">
+        upload_sum_price()
+        function upload_sum_price() {
+        // 设置总价
+            // 获取单价
+            price = $('.show_pirze em').text();
+            // 获取数量
+            num = $('.num_show').val();
+            price = parseFloat(price)
+            num = parseInt(num)
+            // 设置总价
+            $('.total em').text((price * num).toFixed(2)+'元')
+        }
+        $('.add').click(function () {
+            // 实现+按钮的功能
+            num = $('.num_show').val();
+            num = parseInt(num);
+            num += 1;
+            $('.num_show').val(num);
+            upload_sum_price()
+        })
+        $('.minus').click(function () {
+            // 实现-按钮的功能
+            num = $('.num_show').val();
+            num = parseInt(num);
+            num -= 1;
+            if (num <= 0)
+            {
+                num = 1
+            }
+            $('.num_show').val(num);
+            upload_sum_price()
+        })
+        $('.num_show').change(function () {
+            // 实现手动输入数量
+            num = $(this).val()
+            // num = parseInt(num)
+            if (isNaN(num) || num.trim().length == 0 || parseInt(num) <= 0)
+            {
+                num = 1
+            }
+            num = parseInt(num)
+            $(this).val(num)
+            upload_sum_price()
+        })
+
+
 		var $add_x = $('#add_cart').offset().top;
 		var $add_y = $('#add_cart').offset().left;
 
 		var $to_x = $('#show_count').offset().top;
 		var $to_y = $('#show_count').offset().left;
 
-		$(".add_jump").css({'left':$add_y+80,'top':$add_x+10,'display':'block'})
-		$('#add_cart').click(function(){
-			$(".add_jump").stop().animate({
-				'left': $to_y+7,
-				'top': $to_x+7},
-				"fast", function() {
-					$(".add_jump").fadeOut('fast',function(){
-						$('#show_count').html(2);
-					});
 
-			});
+		$('#add_cart').click(function(){
+		    // 获取数量此商品购买数量
+            count = $('.num_show').val()
+            // 获取商品id
+            sku_id = $('.add_cart').attr("sku")
+            // 获取 csrf
+            csrf = $('input[name=csrfmiddlewaretoken]').val()
+		    countext = {'count':count, 'sku_id': sku_id, 'csrfmiddlewaretoken': csrf}
+		    $.post('/cart/add', countext, function (data) {
+                if (data.res == 5)
+                {
+                    $(".add_jump").css({'left':$add_y+80,'top':$add_x+10,'display':'block'})
+                    $(".add_jump").stop().animate({
+                        'left': $to_y+7,
+                        'top': $to_x+7},
+                        "fast", function() {
+                            $(".add_jump").fadeOut('fast',function(){
+                                $('#show_count').html(data.len_cart);
+					        });
+                        });
+
+                }
+                else
+                {
+                    alert(data.errmsg)
+                }
+            })
+
+
 		})
 	</script>
 {% endblock bottomfiles %}
