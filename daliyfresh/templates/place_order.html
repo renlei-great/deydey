@@ -99,17 +99,19 @@
             $.post('/order/commit', countext, function (data) {
                 if (data.res == 5)
                 {
+                    // 提交成功
+                    {#alert(data.message)#}
                     localStorage.setItem('order_finish',2);
 
 			        $('.popup_con').fadeIn('fast', function() {
 
-				    setTimeout(function(){
-					$('.popup_con').fadeOut('fast',function(){
-						window.location.href = '/cart';
-					});
-				},3000)
+                        setTimeout(function(){
+                        $('.popup_con').fadeOut('fast',function(){
+                            window.location.href = '/cart';
+                        });
+                        },3000)
 
-			});
+			        });
                 }
                 else
                 {
