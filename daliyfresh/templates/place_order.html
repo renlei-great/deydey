@@ -69,7 +69,7 @@
 {% endblock body %}
 
 {% block bottom %}
-	<div class="popup_con">
+	<div class="popup_con" id="suc">
 		<div class="popup">
 			<p>订单提交成功！</p>
 		</div>
@@ -102,11 +102,11 @@
                     // 提交成功
                     {#alert(data.message)#}
                     localStorage.setItem('order_finish',2);
-
-			        $('.popup_con').fadeIn('fast', function() {
+                    $('#suc').find('p').text(data.message)
+			        $('#suc').fadeIn('fast', function() {
 
                         setTimeout(function(){
-                        $('.popup_con').fadeOut('fast',function(){
+                        $('#suc').fadeOut('fast',function(){
                             window.location.href = '/cart';
                         });
                         },3000)
@@ -116,7 +116,17 @@
                 else
                 {
                     // 提交失败
-                    alert(data.errmsg)
+                    localStorage.setItem('order_finish',2);
+                    $('#suc').find('p').text(data.errmsg)
+			        $('#suc').fadeIn('fast', function() {
+
+                        setTimeout(function(){
+                        $('#suc').fadeOut('fast',function(){
+                            window.location.href = '/cart';
+                        });
+                        },3000)
+
+			        });
                 }
             })
 

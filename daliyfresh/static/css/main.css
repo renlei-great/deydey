@@ -475,7 +475,15 @@ html,body{height:100%}
 .oper_btn{display:inline-block;border:1px solid #ddd;color:#666;padding:5px 10px}
 
 .popup_con{display:none;}
+.popu_con{display:none;}
 .popup{width:300px;height:150px;border:1px solid #dddddd;border-top:2px solid #00bc6f;background-color:#f7f7f7;position:fixed;
+	left:50%;
+	margin-left:-150px;
+	top:50%;
+	margin-top:-75px;
+	z-index:1000;
+}
+.popu{width:300px;height:150px;border:1px solid #dddddd;border-top:2px solid #00bc6f;background-color:#f7f7f7;position:fixed;
 	left:50%;
 	margin-left:-150px;
 	top:50%;
@@ -484,6 +492,7 @@ html,body{height:100%}
 }
 
 .popup p{height:150px;line-height:150px;text-align:center;font-size:18px;}
+.popu p{height:150px;line-height:150px;text-align:center;font-size:18px;}
 
 .mask{width:100%;height:100%;position:fixed;left:0;top:0;background-color:#000;opacity:0.3;z-index:999;}
 
