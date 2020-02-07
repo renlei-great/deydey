@@ -3,6 +3,8 @@ from django.shortcuts import render, redirect
 from django.views.generic import View
 from user.models import User, Address
 from goods.models import GoodsSKU
+from order.models import OrderInfo, OrderGoods
+from django.core.paginator import Paginator
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired
 from django.core.urlresolvers import reverse
@@ -203,10 +205,61 @@ class UserInfoView(LofinRequiredMixni,View):
 # /user/order
 class UserOrderView(LofinRequiredMixni,View):
     """用户中心-订单页"""
-    def get(self, request):
+    def get(self, request, page):
         """显示"""
-        # prm:order
-        return render(request, 'user_center_order.html', {'prm':'order'})
+        # 获取用户
+        user = request.user
+        # 获取此用户的所有订单
+        orders = OrderInfo.objects.filter(user=user)
+        # 遍历所有订单找出相应的商品
+        for order in orders:
+            # 查询出此订单下的所有订单商品
+            order_skus = OrderGoods.objects.filter(order_id=order.order_id)
+            # 为order动态添加订单中的商品
+            order.order_skus = order_skus
+            # 获取订单状态
+            order.status_name = OrderInfo.ORDER_STATUS[order.order_status]
+
+        # 对订单进行分页
+        paginator = Paginator(orders, 1)
+        # 获取第page页的内容
+        # 校验1:page是否为数字
+        try:
+            page = int(page)
+        except Exception as e:
+            page = 1
+        # 校验2：是否大过总页数
+        if page > paginator.num_pages:
+            page = 1
+        # 获取
+        order_page = paginator.page(page)
+
+        # 只让下方显示五页
+        # 情况1, 总页数小于五页，全部显示
+        # 情况2, 显示的是前三页的时候，显示前五页
+        # 情况3, 显示的是后三页，显示后五页
+        # 其他情况， 显示当前页的前两页和后两页
+        num_page = paginator.num_pages
+
+        if num_page <= 5:
+            pages = range(1, num_page+1)
+        elif page <= 3:
+            pages = range(1,6)
+        elif page >= num_page - 2:
+            pages = range(num_page - 4, num_page +1)
+        else:
+            # 7 7-2=5,7+4=11
+            pages = range(page - 2, page + 3)
+        # 组织上下文
+        countext = {
+            'pages': pages,
+            'orders': orders,
+            'prm': 'order',
+            'order_page': order_page,
+        }
+
+
+        return render(request, 'user_center_order.html', countext)
 
 
 # /user/address

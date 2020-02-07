@@ -278,6 +278,7 @@ class CommitView(View):
                     # import time
                     # time.sleep(10)
 
+                    # 返回受影响的行数
                     res = GoodsSKU.objects.filter(id=sku_id, stock=old_stock).update(sales=new_sales, stock=new_stock)
                     if res == 0:
                         # print('userid:%s,sku_id:%s, res:%s' % (user.id, sku_id, res) )

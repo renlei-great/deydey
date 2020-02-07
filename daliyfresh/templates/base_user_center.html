@@ -8,7 +8,7 @@
 			<h3>用户中心</h3>
 			<ul>
 				<li><a href="{% url 'user:user' %}" {% if prm == 'user' %}class="active" {% endif %}>· 个人信息</a></li>
-				<li><a href="{% url 'user:order' %}" {% if prm == 'order' %}class="active" {% endif %}>· 全部订单</a></li>
+				<li><a href="{% url 'user:order' 1 %}" {% if prm == 'order' %}class="active" {% endif %}>· 全部订单</a></li>
 				<li><a href="{% url 'user:address' %}" {% if prm == 'address' %}class="active" {% endif %}>· 收货地址</a></li>
 			</ul>
 		</div>
