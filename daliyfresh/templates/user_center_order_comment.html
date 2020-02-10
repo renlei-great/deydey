@@ -6,7 +6,7 @@
                 <ul class="order_list_th w978 clearfix">
 					<li class="col01">{{order.create_time}}</li>
 					<li class="col02">订单号：{{order.order_id}}</li>
-					<li class="col02 stress">{{order.status_name}}</li>
+					<li class="col02 stress">{{order.name_status}}</li>
 				</ul>
             <form method="post">
                 {% csrf_token %}
@@ -21,11 +21,11 @@
                             <td width="80%">
                                 <ul class="order_goods_list clearfix">
                                     <li class="col01"><img src="{{ order_sku.sku.image.url }}"></li>
-                                    <li class="col02">{{order_sku.sku.name}}<em>{{order_sku.price}}/{{order_sku.sku.unite}}</em></li>
+                                    <li class="col02">{{order_sku.sku.name}}<em>{{order_sku.sku.price}}/{{order_sku.sku.unite}}</em></li>
                                     <li class="col03">{{order_sku.count}}</li>
                                 </ul>
                             </td>
-                            <td width="20%">{{order_sku.amount}}元</td>
+                            <td width="20%">{{order_sku.price}}元</td>
                         </tr>
                     </tbody>
                 </table>

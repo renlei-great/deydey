@@ -87,17 +87,17 @@
 
 		<div class="r_wrap fr clearfix">
 			<ul class="detail_tab clearfix">
-				<li class="active">商品介绍</li>
-				<li>评论</li>
+				<li id="sku_int" class="active">商品介绍</li>
+				<li id="sku_con">评论</li>
 			</ul>
 
-			<div class="tab_content">
+			<div id="1" class="tab_content">
 				<dl>
 					<dt>商品详情：</dt>
 					<dd>{{ goods_sku.goods.detail | safe }}</dd>
 				</dl>
 			</div>
-            <div class="tab_content">
+            <div id="2" class="tab_content" style="display: none">
 				<dl>
                     {% for comment in comments %}
 					<dt>评论时间：{{ comment.update_time }}&nbsp;&nbsp;用户名称：{{ comment.order.user }}</dt>
@@ -116,6 +116,16 @@
 {% block bottomfiles %}
 	<script type="text/javascript" src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
 	<script type="text/javascript">
+        $('#sku_int').click(function () {
+            $(this).addClass('active').next().removeClass('active')
+            $('#1').show()
+            $('#2').hide()
+        })
+        $('#sku_con').click(function () {
+            $(this).addClass('active').prev().removeClass('active')
+            $('#2').show()
+            $('#1').hide()
+        })
         upload_sum_price()
         function upload_sum_price() {
         // 设置总价
