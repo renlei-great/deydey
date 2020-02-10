@@ -315,6 +315,7 @@ html,body{height:100%}
 	background:url(../images/interval_line.png) 300px top no-repeat;
 }
 
+
 .l_con{width:300px;}
 .reg_logo{width:200px;height:76px;float:right;margin-right:30px;}
 .reg_slogan{width:300px;height:30px;float:right;text-align:right;font-size:24px;color:#69a81e;margin:20px 30px 0 0;}
@@ -649,3 +650,4 @@ html,body{height:100%}
 .stress{
 	color:#ff8800;
 }
+

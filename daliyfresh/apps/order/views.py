@@ -9,6 +9,9 @@ from django.http import JsonResponse
 from order.models import OrderInfo, OrderGoods
 from datetime import datetime
 from django.db import  transaction
+from alipay import AliPay
+from daliyfresh import settings
+import os
 
 # Create your views here.
 
@@ -72,7 +75,6 @@ class PlaceView(LofinRequiredMixni, View):
             'total_price':total_price,
             'str_id': str_id
         }
-
         # 返回数据
         return render(request, 'place_order.html', countext)
 
@@ -314,4 +316,185 @@ class CommitView(View):
 
         # 返回数据
         return JsonResponse({'res': 5, 'message': '提交成功'})
+
+
+class AliPayView(View):
+    """支付宝付款"""
+    def post(self, request):
+        """付款请求"""
+        # 获取用户
+        user = request.user
+        # 获取订单id
+        order_id = request.POST.get('order_id')
+        # 校验用户是否登录
+        if not user.is_authenticated():
+            return JsonResponse({'res':0, 'errmsg':'用户未登录'})
+
+        # 校验订单id是否正确
+        try:
+            order_id = int(order_id)
+        except Exception as e:
+            return JsonResponse({'res':1, 'errmsg':'订单号不正确'})
+
+        # 校验是否有该商品
+        try:
+            order = OrderInfo.objects.get(
+                order_id=order_id,
+                user=user,
+                order_status=1
+            )
+        except OrderInfo.DoesNotExist:
+            return JsonResponse({'res':2, 'errmsg':'没有此订单'})
+
+        # 校验支付方式
+        if not order.pay_method == 3:
+            return JsonResponse({'res': 4, 'errmsg':'请使用支付宝支付'})
+
+        # 处理业务
+        print(os.path.join(settings.BASE_DIR, 'apps/order/app_private_key.pem'))
+        # 初始化 使用python sdk调用支付宝的接口，进行初始化接口类 todo: 特别注意与视频中的公钥地址配置不同，一定要结合文档去做
+        app_private_key_string = open(os.path.join(settings.BASE_DIR, 'apps/order/app_private_key.pem')).read()
+        alipay_public_key_string = open(os.path.join(settings.BASE_DIR, 'apps/order/alipay_public_key.pem')).read()
+
+        alipay = AliPay(
+            appid="2016101800713274",
+            app_notify_url=None,  # 默认回调url
+            app_private_key_string=app_private_key_string,
+            # 支付宝的公钥，验证支付宝回传消息使用，不是你自己的公钥,
+            alipay_public_key_string=alipay_public_key_string,
+            sign_type="RSA2",  # RSA 或者 RSA2
+            debug=True  # 默认False
+        )
+        # 电脑网站支付，需要跳转到https://openapi.alipay.com/gateway.do? + order_string
+        order_string = alipay.api_alipay_trade_page_pay(
+            out_trade_no=order_id,
+            total_amount=str(order.total_price),
+            subject='天天生鲜-%s' % order_id,
+            return_url=None,
+            notify_url=None  # 可选, 不填则使用默认notify url
+        )
+        # 拼接引导用户去的网址 todo: 特别注意写成沙箱的地址
+        alipay_order_url = "https://openapi.alipaydev.com/gateway.do?" + order_string
+
+        # 返回数据
+        return JsonResponse({'res': 3, 'messge': '成功', 'alipay_order_url': alipay_order_url})
+
+
+class QueryView(View):
+    """订单支付结果查询"""
+    def post(self, request):
+        """支付结果查询"""
+        # 获取用户
+        user = request.user
+        # 获取订单id
+        order_id = request.POST.get('order_id')
+        # 校验用户是否登录
+        if not user.is_authenticated():
+            return JsonResponse({'res':0, 'errmsg':'用户未登录'})
+
+        # 校验订单id是否正确
+        try:
+            order_id = int(order_id)
+        except Exception as e:
+            return JsonResponse({'res':1, 'errmsg':'订单号不正确'})
+
+        # 校验是否有该商品
+        try:
+            order = OrderInfo.objects.get(
+                order_id=order_id,
+                user=user,
+                pay_method=3,
+                order_status=1
+            )
+        except OrderInfo.DoesNotExist:
+            return JsonResponse({'res':2, 'ermsg':'没有此订单'})
+
+        # 处理业务
+        print(os.path.join(settings.BASE_DIR, 'apps/order/app_private_key.pem'))
+        # 初始化 使用python sdk调用支付宝的接口，进行初始化接口类 todo: 特别注意与视频中的公钥地址配置不同，一定要结合文档去做
+        app_private_key_string = open(os.path.join(settings.BASE_DIR, 'apps/order/app_private_key.pem')).read()
+        alipay_public_key_string = open(os.path.join(settings.BASE_DIR, 'apps/order/alipay_public_key.pem')).read()
+
+        alipay = AliPay(
+            appid="2016101800713274",
+            app_notify_url=None,  # 默认回调url
+            app_private_key_string=app_private_key_string,
+            # 支付宝的公钥，验证支付宝回传消息使用，不是你自己的公钥,
+            alipay_public_key_string=alipay_public_key_string,
+            sign_type="RSA2",  # RSA 或者 RSA2
+            debug=True  # 默认False
+        )
+
+        while True:
+            # # create an order
+            # alipay.api_alipay_trade_precreate(
+            #     subject='天天生鲜-%s' % order_id,
+            #     out_trade_no=order_id,
+            #     total_amount=100
+            # )
+
+            # 调用查询函数,传入订单id
+            response = alipay.api_alipay_trade_query(order_id)
+            # 支付时会出现的三种状态：
+            # 支付成功 表示：回复码：10000， 状态为成功
+            # 支付进行中  表示：回复码40004（订单还未生成）受理失败，所以此时不会有订单状态这些，回复码10000（支付接口已被调用，但还未付款，状态为未付款）这个情况需要一直循环监听
+            # 支付失败  其他情况都为失败
+            '''
+            respons = {
+                "trade_no": "2017032121001004070200176844",   # 支付宝交易号
+                "code": "10000",   # 网关返回码
+                "invoice_amount": "20.00",
+                "open_id": "20880072506750308812798160715407",
+                "fund_bill_list": [
+                  {
+                    "amount": "20.00",
+                    "fund_channel": "ALIPAYACCOUNT"
+                  }
+                ],
+                "buyer_logon_id": "csq***@sandbox.com",
+                "send_pay_date": "2017-03-21 13:29:17",
+                "receipt_amount": "20.00",
+                "out_trade_no": "out_trade_no15",
+                "buyer_pay_amount": "20.00",
+                "buyer_user_id": "2088102169481075",
+                "msg": "Success",
+                "point_amount": "0.00",
+                "trade_status": "TRADE_SUCCESS",  # 交易状态
+                "total_amount": "20.00"
+            }
+            '''
+            if response.get('code') == '10000' and response.get('trade_status', "") == 'TRADE_SUCCESS':
+                # 支付成功
+                # 修改订单状态
+                # print("成功")
+                # for i, val in response.items():
+                #     print(i, val)
+                order.order_status = 4
+                order.save()
+                # 结果返回
+                return JsonResponse({'res':3, 'mssage':'支付成功'})
+            elif response.get('code') == '40004' or response.get('code') == '10000' and response.get('trade_status', "") == 'WAIT_BUYER_PAY':
+                # 接口调用成功，等待付款
+                # print("等待")
+                # for i, val in response.items():
+                #     print(i, val)
+                import time
+                time.sleep(5)
+                continue
+            else:
+                # print(response.get('code', ""),response.get('trade_status'),response.get('invoice_amount'), order_id)
+                # print("其他")
+                # for i, val in response.items():
+                #     print(i,val)
+                return JsonResponse({'res':4, 'errmsg':'支付失败'})
+
+
+class CommentInfoView(View):
+    """评论视图"""
+    def get(self, request, order_id):
+        """显示添加评论页面"""
+        return render(request, 'user_center_order_comment.html')
+
+
+
 

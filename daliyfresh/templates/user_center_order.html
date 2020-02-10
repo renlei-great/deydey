@@ -1,7 +1,9 @@
 {% extends 'base_user_center.html' %}
+{% load staticfiles %}
 {% block rigth_content %}
 		<div class="right_content clearfix">
 				<h3 class="common_title2">全部订单</h3>
+        {% csrf_token %}
             {% for order in order_page %}
 				<ul class="order_list_th w978 clearfix">
 					<li class="col01">{{ order.create_time }}</li>
@@ -24,10 +26,15 @@
 							</td>
 							<td width="15%">{{ order.total_price  }}元<br>(含运费：10 元)</td>
 							<td width="15%">{{ order.status_name }}</td>
-							<td width="15%"><a href="#" class="oper_btn">去付款</a></td>
+							<td width="15%"><a href="#" order_status="{{ order.order_status }}" order_id = {{ order.order_id }} class="oper_btn">去付款</a></td>
 						</tr>
 					</tbody>
 				</table>
+
+                {% empty %}
+                <div class="order_not">
+                <p>你还没有订单哦</p>
+                </div>
 
             {% endfor %}
 
@@ -49,3 +56,66 @@
 		</div>
 	</div>
 {% endblock rigth_content %}
+{% block bottomfiles %}
+    <script type="text/javascript" src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
+    <script>
+        $('.oper_btn').each(function () {
+            order_status = $(this).attr('order_status')
+            if (order_status == 1)
+            {
+                $(this).text('去付款')
+            }
+            else if (order_status == 4)
+            {
+                $(this).text('去评价')
+            }
+        })
+
+        $('.oper_btn').click(function () {
+            order_status = $(this).attr('order_status')
+            order_id = $(this).attr('order_id')
+            csrf = $('input[name="csrfmiddlewaretoken"]').val()
+            params = {
+                'order_id':order_id,
+                'csrfmiddlewaretoken':csrf
+            }
+            if (order_status == '1')
+            {
+                // 待支付状态
+                $.post('/order/alipay', params, function (data) {
+                    if (data.res == 3)
+                    {
+                        // 成功获取跳转页面
+                        window.open(data.alipay_order_url)
+                        $.post('/order/query', params, function (data) {
+                            if (data.res == 3)
+                            {
+                                // 成功
+                                alert(data.mssage)
+                                location.reload()
+                            }
+                            else{
+                                // 失败
+                                alert(data.errmsg)
+                            }
+                        })
+
+                    }
+                    else
+                    {
+                        // 错误
+                        alert(data.errmsg)
+                    }
+                })
+            }
+            else if (order_status == '4')
+            {
+                // 其他状态
+                comment_url = '/order/comment/' + order_id
+                location.href = comment_url
+            }
+        })
+
+    </script>
+
+{% endblock bottomfiles %}

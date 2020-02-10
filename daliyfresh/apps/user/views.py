@@ -71,8 +71,29 @@ class RegisterView(View):
         # 发送邮件链接，包含激活练级：192.168.223.128:7788/user/active/1
         # 组织邮件发送内容
         # 主题
-        # 用celery发送邮件这个函数被装饰后有一个delay方法，用这个方法加入到broker队列中
-        send_register_active_email.delay(username, res , email)
+        # 用celery发送邮件
+
+        # -----------------------------------------
+
+        # subject = '注册激活'
+        # # html内容
+        # message = ''
+        # html_mag = '<h1>%s 欢迎您成为天天生鲜会员</h1><br>请点击下方链接激活会员<br><a href = "http://192.168.223.128:7788/user/active/%s">http://192.168.223.128:7788/user/active/%s </a><br >' % (
+        #     username, res, res)
+        # # 收件人列表
+        # receiver = [email]
+        # # 发件人
+        # sender = settings.EMAIL_FROM
+        #
+        # # 发送
+        # print("注册")
+        # send_mail(subject, message, sender, receiver, html_message=html_mag)
+
+        # ------------------------------------------
+
+
+
+        send_register_active_email.delay(username, res , email)  # 放入redis任务队列，要传的参数放入delay()里面
         # 重定向
         return redirect(reverse('goods:index'))
 
@@ -210,7 +231,7 @@ class UserOrderView(LofinRequiredMixni,View):
         # 获取用户
         user = request.user
         # 获取此用户的所有订单
-        orders = OrderInfo.objects.filter(user=user)
+        orders = OrderInfo.objects.filter(user=user).order_by('-order_id')
         # 遍历所有订单找出相应的商品
         for order in orders:
             # 查询出此订单下的所有订单商品
