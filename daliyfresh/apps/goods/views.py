@@ -84,7 +84,7 @@ class DetailView(View):
         #  获取此商品相同规格的商品
         goods_spu = GoodsSKU.objects.filter(goods=goods_sku.goods)  # .exclude(id=goods_id)
 
-        # 获取购物车数目-添加历史浏览
+        # 获取购物车数目
         user = request.user
         cart_count = 0
         if user.is_authenticated():

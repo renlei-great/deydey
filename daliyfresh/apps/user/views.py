@@ -58,20 +58,22 @@ class RegisterView(View):
             return render(request, 'register.html', {'errmsg': '请同意条款'})
 
         # 进行业务处理：保存数据
-        user = User.objects.create_user(username, email, pwd)  # 使用django自带方法进行保存用户信息
+        # 使用django自带方法进行保存用户信息
+        user = User.objects.create_user(username, email, pwd)
         user.is_active = 0  # 修改为未激活
         user.save()
 
-        # 对id进行加密
+        # 发送邮件链接，包含激活练级：192.168.223.128:7788/user/active/1
+        # 组织邮件发送内容
+        # 主题
+        # 用celery发送邮件
+        # 对用户id进行加密
         serializer = Serializer(settings.SECRET_KEY, 3600)  # 创建一个加密功能类的对象
         info = {'user_id':user.id}
         res = serializer.dumps(info)
         # 对res转换字符串
         res = res.decode()  # 如果不对其进行utf8解码会出现错误，将二进制转为字符串
-        # 发送邮件链接，包含激活练级：192.168.223.128:7788/user/active/1
-        # 组织邮件发送内容
-        # 主题
-        # 用celery发送邮件
+
 
         # -----------------------------------------
 
